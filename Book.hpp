@@ -4,11 +4,12 @@
 
 class Book
 {
-    std::string Title;
+    int         id;         // Must be Unique
+    std::string Title;      // 
     std::string Author;
     std::string ISBN;
     int         YearPublished;
-    bool        LoanedOut; 
+    bool        LoanedOut;
 };
 
 #endif
