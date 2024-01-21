@@ -4,17 +4,11 @@ Code Challenge:
 
 Create a command-line utility in C++ to simulate a fictional public library, offering the following features:
 
- 
-
 1. Display a list of all books in the library.
 
 2. Enable Create, Read, Update, and Delete (CRUD-like) operations on individual books.
 
- 
-
 For each execution of the utility, specify:
-
- 
 
 1. The desired function.
 
