@@ -12,13 +12,13 @@
 
 
 static const char USAGE[] =
-R"(C.R.U.D. Library Book Tool
+    R"(C.R.U.D. Library Book Tool
 
    Usage:
      CRUD_Book list
      CRUD_Book create --title=<title> [--author=<author>] [--isbn=<isbn>] [--year=<year>] [( --loaned | --returned )]
-     CRUD_Book read [--id=<id>] [--title=<title>] [--author=<author>] [--isbn=<isbn>] [--year=<year] [--loaned] [--returned]
-     CRUD_Book update --id=<id> [--title=<title>] [--author=<author>] [--isbn=<isbn>] [--year=<year>] [(--loaned|--returned)]
+     CRUD_Book read [--id=<id>] [--title=<title>] [--author=<author>] [--isbn=<isbn>] [--year=<year]
+     CRUD_Book update (--id=<id> | --title=<title>) [--author=<author>] [--isbn=<isbn>] [--year=<year>]
      CRUD_Book delete (--id=<id>|--title=<title>|--isbn=<isbn>|--all)
      CRUD_Book ( -h | --help )
      CRUD_Book ( -v | --version )
@@ -113,11 +113,11 @@ int CreateBook(std::map < std::string, docopt::value > args)
             fields << ",year";
             values << "," << args["--year"].asLong();
         }
-        if (args["--loaned"]) {
+        if (args["--loaned"].asBool()) {
             fields << ",loaned";
             values << ",1";
         }
-        else if (args["--returned"]) {
+        else if (args["--returned"].asBool()) {
             fields << ",loaned";
             values << ",0";
         }
@@ -142,13 +142,54 @@ int ReadBook(std::map < std::string, docopt::value > args)
     try
     {
         SQLite::Database BookDb(BookDbFile,SQLite::OPEN_READONLY);  // Open database
-        SQLite::Statement query(BookDb, "SELECT rowid,* from LibraryBooks");
+        std::stringstream baseQuery;
+        std::stringstream whereClause;
+        baseQuery << "SELECT rowid,* from LibraryBooks";
+        // In database id is the automatic rowid
+        if (args["--id"]) {
+            whereClause << " WHERE rowid=" << args["--id"].asLong();
+        }
+        if (args["--title"]) {
+            if (whereClause.tellp() == std::streampos(0))
+                whereClause << " WHERE ";
+            else
+                whereClause << " AND ";
+            whereClause << "title=" << args["--title"];
+        }
+        if (args["--author"]) {
+            if (whereClause.tellp() == std::streampos(0))
+                whereClause << " WHERE ";
+            else
+                whereClause << " AND ";
+            whereClause << "author=" << args["--author"];
+        }
+        if (args["--isbn"]) {
+            if (whereClause.tellp() == std::streampos(0))
+                whereClause << " WHERE ";
+            else
+                whereClause << " AND ";
+            whereClause << "isbn=" << args["--isbn"];
+        }
+        if (args["--year"]) {
+            if (whereClause.tellp() == std::streampos(0))
+                whereClause << " WHERE ";
+            else
+                whereClause << " AND ";
+            whereClause << "year=" << args["--year"];
+        }
 
+        std::cout << whereClause.str() << std::endl;
+        if (whereClause.tellp() != std::streampos(0))
+        {
+            baseQuery << whereClause.str();
+        }
+        SQLite::Statement query(BookDb,baseQuery.str());
         while (query.executeStep())
         {
             int id             = query.getColumn(0);
             const char *title  = query.getColumn(1);
             const char *author = query.getColumn(2);
+
             const char *isbn   = query.getColumn(3);
             int year           = query.getColumn(4);
             int loanedOut      = query.getColumn(5);
