@@ -12,15 +12,13 @@
 
 
 static const char USAGE[] =
-    R"(C.R.U.D. Library Book Tool
+R"(C.R.U.D. Library Book Tool
 
    Usage:
      CRUD_Book list
-     CRUD_Book create --title=<title> [--author=<author>] [--isbn=<isbn>] [--year=<year>] [( --loaned | --returned )]
-     CRUD_Book read [--id=<id>] [--title=<title>] [--author=<author>] [--isbn=<isbn>] [--year=<year]
-               read will read based on a constructed query. all options passed are included
+     CRUD_Book create --title=<title> [--author=<author>] [--isbn=<isbn>] [--year=<year>] [--loaned] [--returned]
+     CRUD_Book read [--id=<id>] [--title=<title>] [--author=<author>] [--isbn=<isbn>] [--year=<year>]
      CRUD_Book update --id=<id> [--title=<title>] [--author=<author>] [--isbn=<isbn>] [--year=<year>]
-               update requires the id to find the record. other options are used to update
      CRUD_Book delete (--id=<id>|--title=<title>|--isbn=<isbn>|--all)
      CRUD_Book ( -h | --help )
      CRUD_Book ( -v | --version )
