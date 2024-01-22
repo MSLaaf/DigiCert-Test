@@ -7,7 +7,7 @@ project(CRUD_Book)
 set(PROJECT_LIBS "")
 
 # set optimization level
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 # set C++ standard
 set(CMAKE_CXX_STANDARD 14)
