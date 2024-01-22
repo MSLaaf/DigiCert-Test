@@ -6,10 +6,6 @@
 		"dockerfile": "Dockerfile"
 	},
 	"features": {
-		"ghcr.io/devcontainers/features/git-lfs:1": {
-			"autoPull": true,
-			"version": "latest"
-		},
 		"ghcr.io/devcontainers-contrib/features/apt-get-packages:1": {
 			"clean_ppas": true,
 			"preserve_apt_list": true,
@@ -23,8 +19,6 @@
 			"ppas": "ppa:deadsnakes/ppa"
 		},
 		"ghcr.io/devcontainers-contrib/features/curl-apt-get:1": {},
-		"ghcr.io/devcontainers-contrib/features/gdbgui:2": {
-			"version": "latest"
 		}
 	}
 
