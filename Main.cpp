@@ -1,11 +1,8 @@
 #include "docopt/docopt.h"
  // https://github.com/docopt/docopt.cpp/tree/master
 #include <iostream>
-
 #include <cstdlib>
-
 #include <map>
-
 #include "Book.hpp"
 
 static const char USAGE[] =
@@ -28,12 +25,38 @@ R"(C.R.U.D. Library Book Tool
      --author=<author>  Quote Author Name
      --isbn=<isbn>      ISBN
      --year=<year>      year of release
-     --loaned           
-     --returned
+     --loaned           set loaned flag
+     --returned         clear loaned flag
      --debug            debug output
 )";
 
 bool debugFlag = false;
+
+int CreateBook(std::map < std::string, docopt::value > args)
+{
+    std::cout << "Create" << std::endl;
+    return 1;
+}
+
+int ReadBook(std::map < std::string, docopt::value > args)
+{
+     std::cout << "Read" << std::endl;
+     return 1;
+}
+
+int UpdateBook(std::map < std::string, docopt::value > args)
+{
+     std::cout << "Update" << std::endl;
+     return 1;
+}
+
+int DeleteBook(std::map < std::string, docopt::value > args)
+{
+    int rc = -1;
+    std::cout << "Delete" << std::endl;
+    return rc;
+}
+
 
 int main(int argc,
    const char ** argv) {
@@ -56,13 +79,13 @@ int main(int argc,
    if (args["list"]) {
       std::cout << "List All records" << std::endl;
    } else if (args["create"]) {
-      std::cout << "Create" << std::endl;
-   } else if (args["delete"]) {
-      std::cout << "Delete" << std::endl;
+      CreateBook(args);
    } else if (args["read"]) {
-      std::cout << "Read" << std::endl;
+      CreateBook(args);
    } else if (args["update"]) {
-      std::cout << "Update" << std::endl;
+      UpdateBook(args);
+   } else if (args["delete"]) {
+      DeleteBook(args);
    } else {
       std::cout << "Invalid command" << std::endl;
       return 1;
