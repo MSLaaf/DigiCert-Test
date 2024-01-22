@@ -28,7 +28,7 @@ R"(C.R.U.D. Library Book Tool
      --author=<author>  Quote Author Name
      --isbn=<isbn>      ISBN
      --year=<year>      year of release
-     --loaned
+     --loaned           
      --returned
      --debug            debug output
 )";
