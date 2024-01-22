@@ -27,7 +27,6 @@ R"(C.R.U.D. Library Book Tool
      --year=<year>      year of release
      --loaned           set loaned flag
      --returned         clear loaned flag
-     --debug            debug output
 )";
 
 bool debugFlag = false;
@@ -78,10 +77,11 @@ int main(int argc,
 
    if (args["list"]) {
       std::cout << "List All records" << std::endl;
+      ReadBook(args);   // Basically a wrapper for ReadBook(all)
    } else if (args["create"]) {
       CreateBook(args);
    } else if (args["read"]) {
-      CreateBook(args);
+      ReadBook(args);
    } else if (args["update"]) {
       UpdateBook(args);
    } else if (args["delete"]) {
