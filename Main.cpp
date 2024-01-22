@@ -18,7 +18,9 @@ static const char USAGE[] =
      CRUD_Book list
      CRUD_Book create --title=<title> [--author=<author>] [--isbn=<isbn>] [--year=<year>] [( --loaned | --returned )]
      CRUD_Book read [--id=<id>] [--title=<title>] [--author=<author>] [--isbn=<isbn>] [--year=<year]
-     CRUD_Book update (--id=<id> | --title=<title>) [--author=<author>] [--isbn=<isbn>] [--year=<year>]
+               read will read based on a constructed query. all options passed are included
+     CRUD_Book update --id=<id> [--title=<title>] [--author=<author>] [--isbn=<isbn>] [--year=<year>]
+               update requires the id to find the record. other options are used to update
      CRUD_Book delete (--id=<id>|--title=<title>|--isbn=<isbn>|--all)
      CRUD_Book ( -h | --help )
      CRUD_Book ( -v | --version )
@@ -130,7 +132,7 @@ int CreateBook(std::map < std::string, docopt::value > args)
     }
     catch (std::exception& e)
     {
-        std::cout << "SQLite exception: " << e.what() << std::endl;
+        std::cout << "CREATE SQLite exception: " << e.what() << std::endl;
         return EXIT_FAILURE; // unexpected error : exit the example program
     }
     return 0;
@@ -202,7 +204,7 @@ int ReadBook(std::map < std::string, docopt::value > args)
     }
     catch (std::exception& e)
     {
-        std::cout << "SQLite exception: " << e.what() << std::endl;
+        std::cout << "READ SQLite exception: " << e.what() << std::endl;
         return EXIT_FAILURE; // unexpected error : exit the example program
     }
     return 0;
@@ -212,49 +214,117 @@ int ReadBook(std::map < std::string, docopt::value > args)
 int UpdateBook(std::map < std::string, docopt::value > args)
 {
     std::cout << "Update" << std::endl;
-    std::cout << "Read" << std::endl;
     try
     {
-        bool didFileExist = file_exists(BookDbFile.c_str());
+        SQLite::Database BookDb(BookDbFile,SQLite::OPEN_READONLY);  // Open database
+        std::stringstream baseQuery;
+        std::stringstream whereClause;
         std::stringstream fields;
         std::stringstream values;
-        std::stringstream query;
-        SQLite::Database BookDb(BookDbFile,
-                                (didFileExist ? 0: SQLite::OPEN_CREATE)|SQLite::OPEN_READWRITE);
-        if (!didFileExist) BookDb.exec(SqlCreate);
-        fields << "(title";  // Title is ALWAYS there
-        values << "(" << args["--title"];
+        baseQuery << "SELECT rowid,* from LibraryBooks";
+        // In database id is the automatic rowid
+        // rowid / id is UNMUTABLE and it is the key to
+        // locate the record.
+        if (args["--id"]) {
+            whereClause << " WHERE rowid=" << args["--id"].asLong();
+        }
+        if (args["--title"]) {
+            fields << "(title";
+            values << args["--title"];
+        }
         if (args["--author"]) {
-            fields << ",author";
-            values << "," << args["--author"];
+            if (fields.tellp() == std::streampos(0))
+            {
+                fields << "(";
+                values << "(";
+            }
+            else
+            {
+                fields << ",";
+                values << ",";
+            }
+            fields << "author";
+            values << args["--author"];
         }
         if (args["--isbn"]) {
-            fields << ",isbn";
-            values << "," << args["--isbn"];
+            if (fields.tellp() == std::streampos(0))
+            {
+                fields << "(";
+                values << "(";
+            }
+            else
+            {
+                fields << ",";
+                values << ",";
+            }
+            fields << "isbn";
+            values << args["--isbn"];
         }
         if (args["--year"]) {
-            fields << ",year";
-            values << "," << args["--year"].asLong();
+            if (fields.tellp() == std::streampos(0))
+            {
+                fields << "(";
+                values << "(";
+            }
+            else
+            {
+                fields << ",";
+                values << ",";
+            }
+            fields << "year";
+            values << args["--year"];
         }
-        if (args["--loaned"].asBool()) {
-            fields << ",loaned";
-            values << ",1";
+        if (args["--loaned"]) {
+            if (fields.tellp() == std::streampos(0))
+            {
+                fields << "(";
+                values << "(";
+            }
+            else
+            {
+                fields << ",";
+                values << ",";
+            }
+            fields << "loaned";
+            values << 1;
         }
         else if (args["--returned"]) {
-            fields << ",loaned";
-            values << ",0";
+            if (fields.tellp() == std::streampos(0))
+            {
+                fields << "(";
+                values << "(";
+            }
+            else
+            {
+                fields << ",";
+                values << ",";
+            }
+            fields << "loaned";
+            values << 0;
         }
-        fields << ")";
-        values << ")";
-        query << "INSERT INTO LibraryBooks " << fields.str() << " VALUES " << values.str();
-        if (debugFlag) std::cout << query.str() << std::endl;
+        if (fields.tellp() == std::streampos(0))
+        {
+            // we got here - NO updates
+            std::cout << "No fields to update" << std::endl;
+            return 0;
+        }
+        else
+        {
+            // close field and value clauses
+            fields << ")";
+            values << ")";
+        }
+        std::stringstream updateQuery;
+        updateQuery << "UPDATE LibraryBooks " << std::endl
+                    << "SET " << fields.str() << " = " << values.str()
+                    << whereClause.str();
 
-        BookDb.exec(query.str());
-        return 0;
+        std::cout << updateQuery.str() << std::endl;
+        SQLite::Statement query(BookDb,updateQuery.str());
     }
     catch (std::exception& e)
     {
-        std::cout << "SQLite exception: " << e.what() << std::endl;
+        std::cout << "UPDATE SQLite exception: " << e.what() << std::endl;
         return EXIT_FAILURE; // unexpected error : exit the example program
     }
     return 0;
