@@ -1,6 +1,7 @@
 #include "docopt/docopt.h"
  // https://github.com/docopt/docopt.cpp/tree/master
 #include <iostream>
+#include <sstream>
 #include <cstdlib>
 #include <map>
 #include "Book.hpp"
@@ -15,7 +16,7 @@ R"(C.R.U.D. Library Book Tool
 
    Usage:
      CRUD_Book list
-     CRUD_Book create --title=<title> --author=<author> [--isbn=<isbn>] [--year=<year>] [--loaned]
+     CRUD_Book create --title=<title> [--author=<author>] [--isbn=<isbn>] [--year=<year>] [( --loaned | --returned )]
      CRUD_Book read --id=<id> [--title=<title>] [--author=<author>] [--isbn=<isbn>] [--year=<year] [--loaned]
      CRUD_Book update --id=<id> [--title=<title>] [--author=<author>] [--isbn=<isbn>] [--year=<year>] [(--loaned|--returned)]
      CRUD_Book delete (--id=<id>|--title=<title>|--isbn=<isbn>|--all)
@@ -37,6 +38,13 @@ R"(C.R.U.D. Library Book Tool
 bool debugFlag = false;
 
 std::string BookDbFile = "Book.db";
+           std::string SqlCreate = "CREATE TABLE IF NOT EXISTS LibraryBooks ("
+                                      "id INT PRIMARY KEY,"
+                                      "title TEXT NOT NULL UNIQUE,"
+                                      "author TEXT,"
+                                      "isbn TEXT,"
+                                      "year INT DEFAULT 1980,"
+                                      "loaned INT DEFAULT FALSE )";
 
 
 // return true if the file specified
@@ -47,29 +55,169 @@ bool file_exists(const char *filename)
     return stat(filename, &buffer) == 0 ? true : false;
 }
 
-int CreateBook(SQLite::Database &BookDb, std::map < std::string, docopt::value > args)
+// CreateBook creates a book entry.The database does _NOT_ have to exist, and it will be created
+// also the table will be added
+int CreateBook(std::map < std::string, docopt::value > args)
 {
-     std::cout << "Create" << std::endl;
-     return 1;
+   int MaxId = 0;
+   try 
+   {
+         bool didFileExist = file_exists(BookDbFile.c_str());
+         std::stringstream fields;
+         std::stringstream values;
+         std::stringstream query;
+         SQLite::Database BookDb(BookDbFile,
+                                   (didFileExist ? 0: SQLite::OPEN_CREATE)|SQLite::OPEN_READWRITE);
+         if (!didFileExist) BookDb.exec(SqlCreate);
+         fields << "(title";  // Title is ALWAYS there
+         values << "(" << args["--title"];
+         if (args["--author"]) {
+            fields << ",author";
+            values << "," << args["--author"];
+         }
+         if (args["--isbn"]) {
+            fields << ",isbn";
+            values << "," << args["--isbn"];
+         }
+         if (args["--year"]) {
+            fields << ",year";
+            values << "," << args["--year"].asLong();
+         }
+         if (args["--loaned"]) {
+            fields << ",loaned";
+            values << ",1";
+         }
+         else if (args["--returned"]) {
+            fields << ",loaned";
+            values << ",0";
+         }
+         fields << ")";
+         values << ")";
+         query << "INSERT INTO LibraryBooks " << fields.str() << " VALUES " << values.str();
+         if (debugFlag) std::cout << query.str() << std::endl;
+
+         BookDb.exec(query.str());
+   }
+   catch (std::exception& e)
+    {
+        std::cout << "SQLite exception: " << e.what() << std::endl;
+        return EXIT_FAILURE; // unexpected error : exit the example program
+    }
+    return 0;
 }
 
 
-int ReadBook(SQLite::Database &BookDb, std::map < std::string, docopt::value > args)
+int ReadBook(std::map < std::string, docopt::value > args)
 {
      std::cout << "Read" << std::endl;
-     return 1;
+   try 
+   {
+         bool didFileExist = file_exists(BookDbFile.c_str());
+         std::stringstream fields;
+         std::stringstream values;
+         std::stringstream query;
+         SQLite::Database BookDb(BookDbFile,
+                                   (didFileExist ? 0: SQLite::OPEN_CREATE)|SQLite::OPEN_READWRITE);
+         if (!didFileExist) BookDb.exec(SqlCreate);
+         fields << "(title";  // Title is ALWAYS there
+         values << "(" << args["--title"];
+         if (args["--author"]) {
+            fields << ",author";
+            values << "," << args["--author"];
+         }
+         if (args["--isbn"]) {
+            fields << ",isbn";
+            values << "," << args["--isbn"];
+         }
+         if (args["--year"]) {
+            fields << ",year";
+            values << "," << args["--year"].asLong();
+         }
+         if (args["--loaned"]) {
+            fields << ",loaned";
+            values << ",1";
+         }
+         else if (args["--returned"]) {
+            fields << ",loaned";
+            values << ",0";
+         }
+         fields << ")";
+         values << ")";
+         query << "INSERT INTO LibraryBooks " << fields.str() << " VALUES " << values.str();
+         if (debugFlag) std::cout << query.str() << std::endl;
+
+         BookDb.exec(query.str());
+         return 0;
+   }
+   catch (std::exception& e)
+    {
+        std::cout << "SQLite exception: " << e.what() << std::endl;
+        return EXIT_FAILURE; // unexpected error : exit the example program
+    }
+    return 0;
 }
 
-int UpdateBook(SQLite::Database &BookDb, std::map < std::string, docopt::value > args)
+int UpdateBook(std::map < std::string, docopt::value > args)
 {
      std::cout << "Update" << std::endl;
-     return 1;
+     std::cout << "Read" << std::endl;
+   try 
+   {
+         bool didFileExist = file_exists(BookDbFile.c_str());
+         std::stringstream fields;
+         std::stringstream values;
+         std::stringstream query;
+         SQLite::Database BookDb(BookDbFile,
+                                   (didFileExist ? 0: SQLite::OPEN_CREATE)|SQLite::OPEN_READWRITE);
+         if (!didFileExist) BookDb.exec(SqlCreate);
+         fields << "(title";  // Title is ALWAYS there
+         values << "(" << args["--title"];
+         if (args["--author"]) {
+            fields << ",author";
+            values << "," << args["--author"];
+         }
+         if (args["--isbn"]) {
+            fields << ",isbn";
+            values << "," << args["--isbn"];
+         }
+         if (args["--year"]) {
+            fields << ",year";
+            values << "," << args["--year"].asLong();
+         }
+         if (args["--loaned"]) {
+            fields << ",loaned";
+            values << ",1";
+         }
+         else if (args["--returned"]) {
+            fields << ",loaned";
+            values << ",0";
+         }
+         fields << ")";
+         values << ")";
+         query << "INSERT INTO LibraryBooks " << fields.str() << " VALUES " << values.str();
+         if (debugFlag) std::cout << query.str() << std::endl;
+
+         BookDb.exec(query.str());
+         return 0;
+   }
+   catch (std::exception& e)
+    {
+        std::cout << "SQLite exception: " << e.what() << std::endl;
+        return EXIT_FAILURE; // unexpected error : exit the example program
+    }
+    return 0;
 }
 
-int DeleteBook(SQLite::Database &BookDb, std::map < std::string, docopt::value > args)
+int DeleteBook(std::map < std::string, docopt::value > args)
 {
     int rc = -1;
     std::cout << "Delete" << std::endl;
+    // --all zaps the database - deletes it
+    if (args["--all"].asBool()) {
+      std::cout << "Deleting database file" << std::endl;
+    } else {
+
+    }
     return rc;
 }
 
@@ -91,26 +239,18 @@ int main(int argc,
          std::cout << arg.first << "=" << arg.second << std::endl;
       }
    }
-         bool didFileExist = file_exists(BookDbFile.c_str());
-           SQLite::Database BookDb(BookDbFile,
-                                   (didFileExist ? 0: SQLite::OPEN_CREATE)|SQLite::OPEN_READWRITE);
-           std::string SqlCreate = "CREATE TABLE IF NOT EXISTS LibraryBooks "
-                                       "(id INTEGER PRIMARY KEY,"
-                                      "title TEXT NOT NULL UNIQUE,"
-                                       "author TEXT,"
-                                       "loaned INT DEFAULT FALSE )";
-          if (!didFileExist) BookDb.exec(SqlCreate);
+
    if (args["list"].asBool()) {
       std::cout << "List All records" << std::endl;
-      ReadBook(BookDb, args);   // Basically a wrapper for ReadBook(all)
+      ReadBook(args);   // Basically a wrapper for ReadBook(all)
    } else if (args["create"].asBool()) {
-      CreateBook(BookDb, args);
+      CreateBook(args);
    } else if (args["read"].asBool()) {
-      ReadBook(BookDb, args);
+      ReadBook(args);
    } else if (args["update"].asBool()) {
-      UpdateBook(BookDb, args);
+      UpdateBook(args);
    } else if (args["delete"].asBool()) {
-      DeleteBook(BookDb, args);
+      DeleteBook(args);
    } else {
       std::cout << "Invalid command" << std::endl;
       return 1;
