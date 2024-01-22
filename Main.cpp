@@ -12,7 +12,7 @@
 
 
 static const char USAGE[] =
-    R"(C.R.U.D. Library Book Tool
+R"(C.R.U.D. Library Book Tool
 
    Usage:
      CRUD_Book list
@@ -39,7 +39,6 @@ bool debugFlag = false;
 
 std::string BookDbFile = "Book.db";
            std::string SqlCreate = "CREATE TABLE IF NOT EXISTS LibraryBooks ("
-                                     //q "id INT PRIMARY KEY,"
                                       "title TEXT NOT NULL UNIQUE,"
                                       "author TEXT,"
                                       "isbn TEXT,"
@@ -76,7 +75,6 @@ int ListBooks(void)
                       << "  Author: " << author << std::endl
                       << "  isbn:   " << isbn << std::endl
                       << "  loaned: " << (loanedOut?"Yes":"No") << std::endl << std::endl;
-
         }
     }
     catch (std::exception& e)
@@ -138,45 +136,28 @@ int CreateBook(std::map < std::string, docopt::value > args)
     return 0;
 }
 
-
+// The parameters to readbook are where clauses
 int ReadBook(std::map < std::string, docopt::value > args)
 {
-    std::cout << "Read" << std::endl;
     try
     {
-        std::stringstream fields;
-        std::stringstream values;
-        std::stringstream query;
         SQLite::Database BookDb(BookDbFile,SQLite::OPEN_READONLY);  // Open database
-        fields << "(title";  // Title is ALWAYS there
-        values << "(" << args["--title"];
-        if (args["--author"]) {
-            fields << ",author";
-            values << "," << args["--author"];
-        }
-        if (args["--isbn"]) {
-            fields << ",isbn";
-            values << "," << args["--isbn"];
-        }
-        if (args["--year"]) {
-            fields << ",year";
-            values << "," << args["--year"].asLong();
-        }
-        if (args["--loaned"]) {
-            fields << ",loaned";
-            values << ",1";
-        }
-        else if (args["--returned"]) {
-            fields << ",loaned";
-            values << ",0";
-        }
-        fields << ")";
-        values << ")";
-        query << "INSERT INTO LibraryBooks " << fields.str() << " VALUES " << values.str();
-        if (debugFlag) std::cout << query.str() << std::endl;
+        SQLite::Statement query(BookDb, "SELECT rowid,* from LibraryBooks");
 
-        BookDb.exec(query.str());
-        return 0;
+        while (query.executeStep())
+        {
+            int id             = query.getColumn(0);
+            const char *title  = query.getColumn(1);
+            const char *author = query.getColumn(2);
+            const char *isbn   = query.getColumn(3);
+            int year           = query.getColumn(4);
+            int loanedOut      = query.getColumn(5);
+            std::cout << "Record:   " << id << std::endl
+                      << "  Title:  " << title << std::endl
+                      << "  Author: " << author << std::endl
+                      << "  isbn:   " << isbn << std::endl
+                      << "  loaned: " << (loanedOut?"Yes":"No") << std::endl << std::endl;
+        }
     }
     catch (std::exception& e)
     {
@@ -185,6 +166,7 @@ int ReadBook(std::map < std::string, docopt::value > args)
     }
     return 0;
 }
+
 
 int UpdateBook(std::map < std::string, docopt::value > args)
 {
